@@ -91,9 +91,10 @@ globalThis.CHECKLIST_ITEMS = [
   },
   {
     "id": "leak",
+    "finding": true,
     "group": "實際操作",
     "title": "注射後漏液",
-    "criterion": "確認無明顯漏液，並能完成足夠停留、拔針與卸針動作。",
+    "criterion": "觀察注射後是否有明顯漏液。停留、拔針與卸針動作可記在補充紀錄。",
     "options": [
       "針頭未完全進入皮下",
       "注射後立即拔針",
@@ -105,6 +106,7 @@ globalThis.CHECKLIST_ITEMS = [
   },
   {
     "id": "bruise",
+    "finding": true,
     "group": "皮膚與組織",
     "title": "瘀青或出血",
     "criterion": "檢查瘀青與出血，必要時回看捏皮、角度、力道與手部穩定度。",
@@ -116,10 +118,11 @@ globalThis.CHECKLIST_ITEMS = [
       "整手抓起組織",
       "反覆同點、重複用針或角度需確認"
     ],
-    "tip": "「符合」表示本次未發現需進一步處理的問題；有問題時記錄位置與操作情形。"
+    "tip": "有瘀青或出血時，記錄位置與操作情形。"
   },
   {
     "id": "pain",
+    "finding": true,
     "group": "皮膚與組織",
     "title": "疼痛或注射恐懼",
     "criterion": "詢問疼痛與恐懼，觀察消毒乾燥、進出針方向與局部放鬆情形。",
@@ -136,6 +139,7 @@ globalThis.CHECKLIST_ITEMS = [
   },
   {
     "id": "raised",
+    "finding": true,
     "group": "皮膚與組織",
     "title": "脂肪增生：外觀凸起",
     "criterion": "以視診觀察注射區域是否凸起或不對稱。",
@@ -149,6 +153,7 @@ globalThis.CHECKLIST_ITEMS = [
   },
   {
     "id": "lump",
+    "finding": true,
     "group": "皮膚與組織",
     "title": "脂肪增生：觸診硬塊",
     "criterion": "以觸診比較正常與異常組織，確認有無硬塊或組織變厚。",
@@ -162,6 +167,7 @@ globalThis.CHECKLIST_ITEMS = [
   },
   {
     "id": "atrophy",
+    "finding": true,
     "group": "皮膚與組織",
     "title": "脂肪萎縮或凹陷",
     "criterion": "觀察與觸診是否出現局部凹陷或組織減少。",
@@ -175,6 +181,7 @@ globalThis.CHECKLIST_ITEMS = [
   },
   {
     "id": "inflammation",
+    "finding": true,
     "group": "皮膚與組織",
     "title": "紅腫、熱痛或感染徵象",
     "criterion": "確認有無持續紅腫、熱痛、化膿或其他疑似感染表現。",
@@ -202,3 +209,12 @@ globalThis.CHECKLIST_ITEMS = [
     "tip": "確認病人能說出用後針具的收集與處理方式，並依實際裝置示範。"
   }
 ];
+globalThis.CHECKLIST_STATUS = {pending: '未評估', pass: '符合', review: '需加強', na: '不適用'};
+globalThis.checklistStatusLabel = (item, status) => {
+  if (item.finding && status === 'pass') return '無';
+  if (item.finding && status === 'review') return '有';
+  return globalThis.CHECKLIST_STATUS[status];
+};
+globalThis.checklistLegacyNote = response => response.legacyStatus
+  ? '舊版結果：' + globalThis.CHECKLIST_STATUS[response.legacyStatus] + '（請重新確認有無）'
+  : '';

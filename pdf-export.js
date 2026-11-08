@@ -1,6 +1,6 @@
 /* Original PDF layout for this project; source checklist summarized from TADE 2026 p.72. */
 (function(root){
-  const LABELS={pass:'符合',review:'需加強',pending:'未評估',na:'不適用'};
+  const label=root.checklistStatusLabel;
   async function build({items,state,fontBytes,PDFLib,fontkit,blank=false}){
     const {PDFDocument,rgb}=PDFLib,doc=await PDFDocument.create();doc.registerFontkit(fontkit);
     const font=await doc.embedFont(fontBytes,{subset:true});
@@ -15,13 +15,13 @@
     para('填寫日期：'+(blank?'____________':meta.date||'未填')+'    個案代碼：'+(blank?'____________':meta.caseCode||'未填')+'    衛教師代稱：'+(blank?'____________':meta.educator||'未填'));
     para('糖尿病類型：'+(blank?'____________':meta.dmType||'未填')+'    執行者：'+(blank?'____________':meta.operator||'未填')+'    針具：'+(blank?'____________':meta.device||'未填'));
     para('藥物／處方劑量／時間：'+(blank?'________________________________________________':meta.prescription||'未填'));
-    if(!blank){const counts={pass:0,review:0,pending:0,na:0};items.forEach(i=>counts[state.responses?.[i.id]?.status||'pending']++);para(`完成 ${items.length-counts.pending}/${items.length} 項；符合 ${counts.pass}、需加強 ${counts.review}、未評估 ${counts.pending}、不適用 ${counts.na}`,{color:C.teal});}
-    para('本表以胰島素注射為主。未評估不代表符合；不適用須有原因。項目計數不是經驗證的臨床分數。',{size:9,color:C.muted,gap:9});
+    if(!blank){const counts={pass:0,review:0,pending:0,na:0};items.forEach(i=>counts[state.responses?.[i.id]?.status||'pending']++);para(`完成 ${items.length-counts.pending}/${items.length} 項；符合或無異常 ${counts.pass}、需加強或有異常 ${counts.review}、未評估 ${counts.pending}、不適用 ${counts.na}`,{color:C.teal});}
+    para('本表以胰島素注射為主。未檢查或無法判定時選未評估；不適用須有原因。項目計數不是經驗證的臨床分數。',{size:9,color:C.muted,gap:9});
     let last='';items.forEach((item,index)=>{const r=state.responses?.[item.id]||{};const head=(index+1)+'. '+item.title;const criterionLines=lines(item.criterion,10).length;ensure(48+criterionLines*14+(item.group!==last?28:0));if(item.group!==last){y-=5;page.drawRectangle({x:M,y:y-5,width:content,height:23,color:C.pale});page.drawText(item.group,{x:M+8,y:y+2,size:11,font,color:C.teal});y-=27;last=item.group;}
       para(head,{size:12,gap:2});para(item.criterion,{size:10,color:C.muted,gap:3});
-      para(blank?'結果：□符合　□需加強　□未評估　□不適用':'本次：'+LABELS[r.status||'pending'],{size:10.5,color:(r.status==='review'?C.teal:C.ink),gap:2});
+      para(blank?'結果：'+['pass','review','pending','na'].map(status=>'□'+label(item,status)).join('　'):'本次：'+label(item,r.status||'pending'),{size:10.5,color:(r.status==='review'?C.teal:C.ink),gap:2});
       if(blank){para('發現／衛教／不適用原因：________________________________________________',{size:9,color:C.muted,gap:9});}
-      else{if(r.flags?.length)para('補充發現：'+r.flags.join('、'),{size:10,gap:2});if(r.note)para('觀察與衛教紀錄：'+r.note,{size:10,gap:2});if(r.status==='na')para('不適用原因：'+(r.naReason||'尚未填寫'),{size:10,gap:2});y-=10;}
+      else{if(r.legacyStatus)para(root.checklistLegacyNote(r),{size:10,gap:2});if(r.flags?.length)para('補充發現：'+r.flags.join('、'),{size:10,gap:2});if(r.note)para('觀察與衛教紀錄：'+r.note,{size:10,gap:2});if(r.status==='na')para('不適用原因：'+(r.naReason||'尚未填寫'),{size:10,gap:2});y-=10;}
     });
     ensure(100);para('本次衛教結語與追蹤',{size:13,color:C.teal});
     para('整體評估：'+(blank?'________________________________':state.conclusion||'尚未填寫'));
