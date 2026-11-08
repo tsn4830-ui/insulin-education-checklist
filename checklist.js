@@ -45,3 +45,67 @@ function report(){const host=$('print-report');host.replaceChildren();const add=
 $('preview-print').onclick=()=>{report();window.print()};window.addEventListener('beforeprint',report);
 for(const key of META)$('meta-'+key).addEventListener('input',e=>{state.meta[key]=e.target.value;dirty=true;});for(const key of ['conclusion','followUp'])$(key).addEventListener('input',e=>{state[key]=e.target.value;dirty=true;});$('filter').addEventListener('change',update);$('assessment').addEventListener('submit',e=>e.preventDefault());window.addEventListener('beforeunload',e=>{if(dirty){e.preventDefault();e.returnValue='';}});
 buildChecklist();applyState(state);
+
+function makeHisSummary(record) {
+  const lines = ['胰島素注射衛教紀錄'];
+  const fields = [
+    ['填寫日期', 'date'], ['個案代碼', 'caseCode'], ['衛教師', 'educator'],
+    ['糖尿病類型', 'dmType'], ['注射執行者', 'operator'], ['針具', 'device'],
+    ['用藥、處方劑量與實際注射時間', 'prescription'],
+  ];
+  for (const [label, key] of fields) {
+    const value = record.meta[key].trim();
+    if (value) lines.push(label + '：' + value);
+  }
+
+  lines.push('', '核對結果');
+  for (const status of ['pass', 'review', 'pending', 'na']) {
+    const titles = ITEMS.filter(item => record.responses[item.id].status === status)
+      .map(item => item.title);
+    lines.push(STATUS[status] + ' ' + titles.length + ' 項' +
+      (titles.length ? '：' + titles.join('、') : ''));
+  }
+
+  const details = [];
+  for (const item of ITEMS) {
+    const response = record.responses[item.id];
+    const notes = [];
+    if (response.flags.length) notes.push('發現：' + response.flags.join('、'));
+    if (response.note.trim()) notes.push('觀察與衛教：' + response.note.trim());
+    if (response.status === 'na') {
+      notes.push('不適用原因：' + (response.naReason.trim() || '尚未填寫'));
+    }
+    if (notes.length) {
+      details.push(item.title + '（' + STATUS[response.status] + '）');
+      details.push(...notes);
+    }
+  }
+  if (details.length) lines.push('', '補充紀錄', ...details);
+
+  lines.push('', '整體評估：' + (record.conclusion.trim() || '尚未填寫'));
+  lines.push('後續計畫：' + (record.followUp.trim() || '尚未填寫'));
+  return lines.join('\n');
+}
+
+$('open-his').addEventListener('click', () => {
+  $('his-text').value = makeHisSummary(snapshot());
+  $('his-status').textContent = '';
+  $('his-dialog').showModal();
+});
+$('close-his').addEventListener('click', () => $('his-dialog').close());
+$('his-dialog').addEventListener('close', () => {
+  $('his-text').value = '';
+  $('his-status').textContent = '';
+});
+$('copy-his').addEventListener('click', async () => {
+  const preview = $('his-text');
+  try {
+    await navigator.clipboard.writeText(preview.value);
+    if ($('his-dialog').open) $('his-status').textContent = '已複製摘要，可貼到 HIS。';
+  } catch {
+    if (!$('his-dialog').open) return;
+    preview.focus();
+    preview.select();
+    $('his-status').textContent = '已選取摘要，請按 Ctrl+C 或 ⌘C 複製。';
+  }
+});

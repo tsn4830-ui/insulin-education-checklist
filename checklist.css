@@ -19,3 +19,6 @@ header{border-bottom:1px solid #dce2d7}
 @media(max-width:520px){.intro{border-radius:16px;padding:22px}.intro h1{font-size:34px}.hero-art{aspect-ratio:3/2}}
 
 .top-links{display:flex;align-items:center;gap:clamp(10px,2vw,24px);font-size:15px}.top-links a{white-space:nowrap}#export-area{scroll-margin-top:18px}@media(max-width:520px){.top-links{gap:9px;font-size:12px}}
+#his-dialog{width:min(720px,calc(100% - 32px));max-width:none}
+#his-text{resize:vertical;min-height:130px;max-height:48dvh;line-height:1.55}
+#his-status{min-height:1.5em;margin-bottom:0}
